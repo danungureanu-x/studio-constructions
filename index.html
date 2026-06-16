@@ -12,6 +12,7 @@
 </head>
 <body>
 
+
   <!-- ===== NAV ===== -->
   <header class="site-header" id="top">
     <nav class="nav container">
@@ -29,21 +30,41 @@
     </nav>
   </header>
 
+  <!-- Hidden SVG filter for gooey morph effect -->
+  <svg aria-hidden="true" focusable="false" style="position:absolute;height:0;width:0;overflow:hidden">
+    <defs>
+      <filter id="gooey-threshold">
+        <feColorMatrix in="SourceGraphic" type="matrix"
+          values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 255 -140"/>
+      </filter>
+    </defs>
+  </svg>
+
   <main>
 
     <!-- ===== HERO ===== -->
     <section class="hero">
-      <div class="hero__bg"></div>
+      <div class="hero__bg hero__bg--exterior"></div>
+      <div class="hero__bg hero__bg--interior"></div>
       <div class="container hero__content">
-        <p class="hero__eyebrow">Building since 2005</p>
-        <h1 class="hero__title">We Build the Home<br />You've Always Imagined</h1>
-        <p class="hero__sub">From the first blueprint to the final finish, Studio Constructions brings craftsmanship, care, and expertise to every home we build.</p>
+        <p class="hero__eyebrow">Construim din 2005</p>
+        <h1 class="hero__title">Noi transformăm visele în realitate!</h1>
+        <p class="hero__sub">De la primul plan până la ultimul finisaj, Studio Constructions aduce măiestrie, grijă și expertiză în fiecare casă pe care o construim.</p>
         <div class="hero__actions">
-          <a href="#projects" class="btn btn--primary">View Our Work</a>
-          <a href="#contact" class="btn btn--secondary">Get a Free Quote</a>
+          <a href="#projects" class="btn btn--primary">Vezi Proiectele</a>
+          <a href="#contact" class="btn btn--secondary">Solicită o Ofertă</a>
         </div>
       </div>
     </section>
+
+    <!-- ===== GOOEY TEXT STRIP ===== -->
+    <div class="gooey-strip">
+      <p class="gooey-strip__label">Ce facem?</p>
+      <div class="gooey-strip__inner" style="filter:url(#gooey-threshold)">
+        <span class="gooey-strip__text" id="gooey-t1"></span>
+        <span class="gooey-strip__text" id="gooey-t2"></span>
+      </div>
+    </div>
 
     <!-- ===== ABOUT ===== -->
     <section class="about section" id="about">
@@ -283,5 +304,40 @@
   </footer>
 
   <script src="js/main.js" defer></script>
+
+  <!-- ===== CHAT WIDGET ===== -->
+  <div id="chat-widget">
+    <button id="chat-toggle" aria-label="Deschide chat / Open chat" aria-expanded="false">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" fill="none"/>
+      </svg>
+    </button>
+    <div id="chat-window" role="dialog" aria-label="Asistent Studio Constructions" hidden>
+      <div class="chat__header">
+        <div class="chat__header-info">
+          <span class="chat__status-dot" aria-hidden="true"></span>
+          <div>
+            <strong>Studio Constructions</strong>
+            <span>Online 24/7</span>
+          </div>
+        </div>
+        <button class="chat__close" aria-label="Închide chat / Close chat">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <path d="M2 2l14 14M16 2L2 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+      <div id="chat-messages" class="chat__messages" aria-live="polite"></div>
+      <div class="chat__input-area">
+        <input type="text" id="chat-input" placeholder="Scrieți un mesaj… / Type a message…" autocomplete="off" />
+        <button id="chat-send" aria-label="Trimite / Send">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M14 8H2M14 8L9 3M14 8L9 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
