@@ -8,7 +8,8 @@
       <a href="#about">About</a>
       <a href="#find-us">Find Us</a>
     </nav>
-    <a href="#reserve" class="btn btn--primary nav__cta">Book a Table</a>
+    <button class="btn btn--primary nav__preorder" id="open-preorder">Pre-Order</button>
+    <a href="#reserve" class="btn btn--outline nav__cta">Book a Table</a>
     <button class="nav__burger" id="nav-burger" aria-label="Toggle menu" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
@@ -104,7 +105,11 @@
   .nav__burger.open span:nth-child(2) { opacity: 0; }
   .nav__burger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
+  .nav__preorder { padding: 0.5rem 1.1rem; font-size: 0.78rem; }
+  .nav__cta { padding: 0.5rem 1.1rem; font-size: 0.78rem; }
+
   @media (max-width: 768px) {
+    .nav__preorder { display: none; }
     .nav__cta { display: none; }
     .nav__burger { display: flex; }
     .nav__links {

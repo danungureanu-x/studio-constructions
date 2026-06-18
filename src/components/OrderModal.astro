@@ -1,0 +1,574 @@
+---
+const webhookUrl = import.meta.env.PUBLIC_PREORDER_WEBHOOK ?? '';
+
+const categories = [
+  {
+    label: 'Burgers',
+    items: [
+      { id: 'the-og',       name: 'THE OG',       desc: 'Double smash, American cheese, pickles, STACKD sauce',       price: '42 lei', priceNum: 42 },
+      { id: 'smoky-bbq',    name: 'SMOKY BBQ',    desc: 'Smoked bacon, cheddar, caramelised onion, BBQ glaze',        price: '47 lei', priceNum: 47 },
+      { id: 'spicy-bird',   name: 'SPICY BIRD',   desc: 'Crispy chicken thigh, ghost pepper mayo, slaw, jalapeños',   price: '44 lei', priceNum: 44 },
+      { id: 'truffle-melt', name: 'TRUFFLE MELT', desc: 'Triple smash, gruyère, truffle mayo, crispy shallots',       price: '55 lei', priceNum: 55 },
+    ],
+  },
+  {
+    label: 'Sides',
+    items: [
+      { id: 'smash-fries',  name: 'SMASH FRIES',  desc: 'Twice-fried, seasoned, STACKD seasoning',             price: '18 lei', priceNum: 18 },
+      { id: 'cheese-fries', name: 'CHEESE FRIES', desc: 'Smash fries, molten cheddar sauce, pickled jalapeños', price: '24 lei', priceNum: 24 },
+      { id: 'onion-rings',  name: 'ONION RINGS',  desc: 'Beer-battered, crispy, ranch dip',                     price: '20 lei', priceNum: 20 },
+    ],
+  },
+  {
+    label: 'Drinks',
+    items: [
+      { id: 'shake-vanilla', name: 'SHAKE — VANILLA',       desc: 'Whole milk, vanilla bean, whipped cream',       price: '28 lei', priceNum: 28 },
+      { id: 'shake-pb',      name: 'SHAKE — PEANUT BUTTER', desc: 'Dark chocolate, peanut butter, salted caramel', price: '30 lei', priceNum: 30 },
+      { id: 'craft-lemonade',name: 'CRAFT LEMONADE',         desc: 'House-made, ginger, mint, sparkling',           price: '16 lei', priceNum: 16 },
+    ],
+  },
+];
+---
+
+<dialog class="pod" id="preorder-dialog" data-webhook={webhookUrl}>
+
+  <!-- Header -->
+  <div class="pod__header">
+    <div>
+      <p class="eyebrow">Click &amp; Collect</p>
+      <h2 class="pod__title">BUILD YOUR ORDER</h2>
+    </div>
+    <button class="pod__close" id="pod-close" aria-label="Close">✕</button>
+  </div>
+
+  <!-- Scrollable body: menu + total + form -->
+  <div class="pod__body" id="pod-body">
+
+    <div class="pod__menu">
+      {categories.map(cat => (
+        <div class="pod__category">
+          <p class="pod__cat-label">{cat.label}</p>
+          <ul class="pod__list">
+            {cat.items.map(item => (
+              <li
+                class="pod__item"
+                data-id={item.id}
+                data-name={item.name}
+                data-price={item.priceNum}
+                data-price-label={item.price}
+                data-category={cat.label}
+              >
+                <div class="pod__item-info">
+                  <span class="pod__item-name">{item.name}</span>
+                  <span class="pod__item-desc">{item.desc}</span>
+                </div>
+                <div class="pod__item-controls">
+                  <span class="pod__item-price">{item.price}</span>
+                  <div class="pod__qty">
+                    <button class="pod__qty-btn" data-action="dec" data-id={item.id} aria-label={`Remove one ${item.name}`}>−</button>
+                    <span class="pod__qty-num" id={`qty-${item.id}`}>0</span>
+                    <button class="pod__qty-btn" data-action="inc" data-id={item.id} aria-label={`Add one ${item.name}`}>+</button>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+
+    <!-- Total (hidden when nothing selected) -->
+    <div class="pod__total-bar" id="pod-total-bar" hidden>
+      <span class="pod__total-label">ORDER TOTAL</span>
+      <span class="pod__total-price" id="pod-total-price">0 lei</span>
+    </div>
+
+    <!-- Customer info form (hidden when nothing selected) -->
+    <form class="pod__form" id="pod-form" hidden novalidate>
+      <div class="pod__form-row">
+        <div class="pod__form-group">
+          <label for="pod-name">Name</label>
+          <input type="text" id="pod-name" name="name" placeholder="Your name" required autocomplete="name" />
+        </div>
+        <div class="pod__form-group">
+          <label for="pod-phone">Phone</label>
+          <input type="tel" id="pod-phone" name="phone" placeholder="+40 7xx xxx xxx" required autocomplete="tel" />
+        </div>
+      </div>
+      <p class="pod__form-note">Pay cash when you arrive — we'll have it ready.</p>
+      <button type="submit" class="btn btn--primary pod__submit" id="pod-submit">
+        Confirm &amp; Send Order
+      </button>
+    </form>
+
+  </div>
+
+  <!-- Confirmation screen (replaces body after successful submit) -->
+  <div class="pod__confirm" id="pod-confirm" hidden>
+    <div class="pod__confirm-check">✓</div>
+    <p class="eyebrow">Order Received</p>
+    <h3 class="pod__confirm-title">We're on it!</h3>
+    <p class="pod__confirm-num" id="pod-order-num">#000000</p>
+    <p class="pod__confirm-sub">
+      Drive over — your order will be ready when you arrive.<br />Pay cash at the counter.
+    </p>
+    <button class="btn btn--outline pod__confirm-close" id="pod-confirm-close">Close</button>
+  </div>
+
+</dialog>
+
+<script>
+  const dialog   = document.getElementById('preorder-dialog') as HTMLDialogElement;
+  const closeBtn = document.getElementById('pod-close') as HTMLButtonElement;
+  const podBody  = document.getElementById('pod-body') as HTMLDivElement;
+  const totalBar = document.getElementById('pod-total-bar') as HTMLDivElement;
+  const totalPriceEl = document.getElementById('pod-total-price') as HTMLSpanElement;
+  const form        = document.getElementById('pod-form') as HTMLFormElement;
+  const nameInput   = document.getElementById('pod-name') as HTMLInputElement;
+  const phoneInput  = document.getElementById('pod-phone') as HTMLInputElement;
+  const submitBtn   = document.getElementById('pod-submit') as HTMLButtonElement;
+  const confirmEl   = document.getElementById('pod-confirm') as HTMLDivElement;
+  const orderNumEl  = document.getElementById('pod-order-num') as HTMLParagraphElement;
+  const confirmClose = document.getElementById('pod-confirm-close') as HTMLButtonElement;
+
+  const WEBHOOK_URL = dialog.dataset.webhook ?? '';
+
+  // qty state: item id → quantity
+  const qtys = new Map<string, number>();
+
+  // ── State helpers ───────────────────────────────────────────────────────────
+  function adjustQty(id: string, delta: number) {
+    const next = Math.max(0, (qtys.get(id) ?? 0) + delta);
+    qtys.set(id, next);
+  }
+
+  function getTotal() {
+    let itemCount = 0;
+    let totalPrice = 0;
+    document.querySelectorAll<HTMLLIElement>('.pod__item').forEach(li => {
+      const qty = qtys.get(li.dataset.id!) ?? 0;
+      itemCount += qty;
+      totalPrice += Number(li.dataset.price) * qty;
+    });
+    return { itemCount, totalPrice };
+  }
+
+  function buildOrderItems() {
+    const items: { name: string; category: string; qty: number; unitPrice: number; lineTotal: number }[] = [];
+    document.querySelectorAll<HTMLLIElement>('.pod__item').forEach(li => {
+      const qty = qtys.get(li.dataset.id!) ?? 0;
+      if (qty > 0) {
+        const unitPrice = Number(li.dataset.price);
+        items.push({
+          name: li.dataset.name!,
+          category: li.dataset.category!,
+          qty,
+          unitPrice,
+          lineTotal: unitPrice * qty,
+        });
+      }
+    });
+    return items;
+  }
+
+  // ── Render ──────────────────────────────────────────────────────────────────
+  function render() {
+    document.querySelectorAll<HTMLLIElement>('.pod__item').forEach(li => {
+      const id  = li.dataset.id!;
+      const qty = qtys.get(id) ?? 0;
+
+      const numEl  = document.getElementById(`qty-${id}`);
+      const decBtn = li.querySelector<HTMLButtonElement>('[data-action="dec"]');
+      if (numEl) numEl.textContent = String(qty);
+      if (decBtn) decBtn.style.opacity = qty === 0 ? '0.3' : '1';
+    });
+
+    const { itemCount, totalPrice } = getTotal();
+    const hasItems = itemCount > 0;
+
+    totalBar.hidden = !hasItems;
+    form.hidden = !hasItems;
+    if (hasItems) totalPriceEl.textContent = `${totalPrice} lei`;
+  }
+
+  // ── Open / close ────────────────────────────────────────────────────────────
+  function openDialog() {
+    dialog.showModal();
+  }
+
+  function closeDialog() {
+    dialog.close();
+    qtys.clear();
+    nameInput.value = '';
+    phoneInput.value = '';
+    submitBtn.textContent = 'Confirm & Send Order';
+    submitBtn.disabled = false;
+    podBody.hidden = false;
+    confirmEl.hidden = true;
+    render();
+  }
+
+  // Trigger buttons: nav (#open-preorder) and hero ([data-preorder="open"])
+  document.querySelectorAll<HTMLElement>('[data-preorder="open"]').forEach(el => {
+    el.addEventListener('click', openDialog);
+  });
+  document.getElementById('open-preorder')?.addEventListener('click', openDialog);
+
+  closeBtn.addEventListener('click', closeDialog);
+  confirmClose.addEventListener('click', closeDialog);
+
+  // Close on backdrop click
+  dialog.addEventListener('click', e => {
+    const rect = dialog.getBoundingClientRect();
+    if (
+      e.clientX < rect.left || e.clientX > rect.right ||
+      e.clientY < rect.top  || e.clientY > rect.bottom
+    ) closeDialog();
+  });
+
+  // Native <dialog> handles Escape — sync our state on cancel
+  dialog.addEventListener('cancel', closeDialog);
+
+  // ── Qty buttons (event delegation) ─────────────────────────────────────────
+  document.querySelector('.pod__menu')!.addEventListener('click', e => {
+    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-action]');
+    if (!btn) return;
+    adjustQty(btn.dataset.id!, btn.dataset.action === 'inc' ? 1 : -1);
+    render();
+  });
+
+  // ── Form submit ─────────────────────────────────────────────────────────────
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const name  = nameInput.value.trim();
+    const phone = phoneInput.value.trim();
+    if (!name)  { nameInput.focus();  return; }
+    if (!phone) { phoneInput.focus(); return; }
+
+    const items = buildOrderItems();
+    if (items.length === 0) return;
+
+    const { itemCount, totalPrice } = getTotal();
+    const orderNumber = `#${Date.now().toString(36).toUpperCase().slice(-6)}`;
+
+    const payload = {
+      orderNumber,
+      timestamp: new Date().toISOString(),
+      customer: { name, phone },
+      items,
+      summary: { itemCount, totalPrice, currency: 'lei' },
+    };
+
+    submitBtn.textContent = 'Sending…';
+    submitBtn.disabled = true;
+
+    try {
+      const res = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      orderNumEl.textContent = orderNumber;
+      podBody.hidden = true;
+      confirmEl.hidden = false;
+    } catch {
+      submitBtn.textContent = 'Retry — something went wrong';
+      submitBtn.disabled = false;
+    }
+  });
+
+  render();
+</script>
+
+<style>
+  /* Dialog — only show when browser adds [open] via showModal() */
+  .pod {
+    display: none;
+  }
+  .pod[open] {
+    width: min(580px, 94vw);
+    max-height: 88dvh;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.7);
+    padding: 0;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    color: var(--text);
+  }
+  .pod::backdrop {
+    background: rgba(13, 12, 10, 0.85);
+    backdrop-filter: blur(6px);
+  }
+
+  /* Header */
+  .pod__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 1.4rem 1.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .pod__title {
+    font-family: var(--font-mono);
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    margin-top: 0.2rem;
+  }
+  .pod__close {
+    font-size: 1rem;
+    color: var(--muted);
+    padding: 0.25rem 0.5rem;
+    transition: color 0.2s;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .pod__close:hover { color: var(--text); }
+
+  /* Scrollable body */
+  .pod__body {
+    overflow-y: auto;
+    flex: 1;
+    overscroll-behavior: contain;
+  }
+
+  /* Menu categories */
+  .pod__category { border-bottom: 1px solid var(--border); }
+  .pod__cat-label {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0.8rem 1.75rem 0.4rem;
+  }
+  .pod__list { list-style: none; padding: 0; margin: 0; }
+
+  .pod__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.85rem 1.75rem;
+    border-top: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  .pod__item:hover { background: var(--surface-2); }
+
+  .pod__item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.12rem;
+    flex: 1;
+    min-width: 0;
+  }
+  .pod__item-name {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--text);
+  }
+  .pod__item-desc {
+    font-size: 0.75rem;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .pod__item-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-shrink: 0;
+  }
+  .pod__item-price {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+  .pod__qty {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .pod__qty-btn {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    color: var(--text);
+    transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+  }
+  .pod__qty-btn:hover { background: var(--surface-2); border-color: var(--accent); }
+  .pod__qty-num {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    min-width: 1.4ch;
+    text-align: center;
+    color: var(--text);
+  }
+
+  /* Ensure hidden attribute wins over display rules in this component */
+  .pod__body[hidden],
+  .pod__total-bar[hidden],
+  .pod__form[hidden],
+  .pod__confirm[hidden] { display: none; }
+
+  /* Total bar */
+  .pod__total-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.75rem;
+    background: var(--surface-2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .pod__total-label {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .pod__total-price {
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  /* Form */
+  .pod__form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    padding: 1.25rem 1.75rem 1.75rem;
+  }
+  .pod__form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+  .pod__form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  .pod__form-group label {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .pod__form-group input {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.72rem 0.9rem;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.2s;
+  }
+  .pod__form-group input:focus { border-color: var(--accent); }
+  .pod__form-group input::placeholder { color: var(--muted); }
+  .pod__form-note {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+  }
+  .pod__submit {
+    width: 100%;
+    justify-content: center;
+    font-size: 0.85rem;
+  }
+  .pod__submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  /* Confirmation */
+  .pod__confirm {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.6rem;
+    padding: 3rem 2rem 2.5rem;
+    flex: 1;
+  }
+  .pod__confirm-check {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--bg);
+    font-family: var(--font-mono);
+    font-size: 1.4rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+  }
+  .pod__confirm-title {
+    font-family: var(--font-mono);
+    font-size: 1.4rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+  .pod__confirm-num {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+  }
+  .pod__confirm-sub {
+    color: var(--muted);
+    font-size: 0.88rem;
+    line-height: 1.6;
+    max-width: 300px;
+    margin-top: 0.25rem;
+  }
+  .pod__confirm-close {
+    margin-top: 1.25rem;
+    min-width: 140px;
+    justify-content: center;
+  }
+
+  /* Mobile: bottom sheet */
+  @media (max-width: 520px) {
+    .pod[open] {
+      position: fixed;
+      inset: auto 0 0 0;
+      width: 100%;
+      max-width: 100%;
+      max-height: 92dvh;
+      border-radius: 12px 12px 0 0;
+      border-bottom: none;
+      margin: 0;
+    }
+    .pod__form-row { grid-template-columns: 1fr; }
+    .pod__item-desc { display: none; }
+  }
+</style>

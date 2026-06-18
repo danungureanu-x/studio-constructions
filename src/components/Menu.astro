@@ -1,19 +1,19 @@
 ---
 const burgers = [
-  { name: 'THE OG', desc: 'Double smash, American cheese, pickles, STACKD sauce', price: '42 lei' },
-  { name: 'SMOKY BBQ', desc: 'Smoked bacon, cheddar, caramelised onion, BBQ glaze', price: '47 lei' },
-  { name: 'SPICY BIRD', desc: 'Crispy chicken thigh, ghost pepper mayo, slaw, jalapeños', price: '44 lei' },
-  { name: 'TRUFFLE MELT', desc: 'Triple smash, gruyère, truffle mayo, crispy shallots', price: '55 lei' },
+  { id: 'the-og',       name: 'THE OG',       desc: 'Double smash, American cheese, pickles, STACKD sauce',       price: '42 lei', priceNum: 42 },
+  { id: 'smoky-bbq',    name: 'SMOKY BBQ',    desc: 'Smoked bacon, cheddar, caramelised onion, BBQ glaze',        price: '47 lei', priceNum: 47 },
+  { id: 'spicy-bird',   name: 'SPICY BIRD',   desc: 'Crispy chicken thigh, ghost pepper mayo, slaw, jalapeños',   price: '44 lei', priceNum: 44 },
+  { id: 'truffle-melt', name: 'TRUFFLE MELT', desc: 'Triple smash, gruyère, truffle mayo, crispy shallots',       price: '55 lei', priceNum: 55 },
 ];
 const sides = [
-  { name: 'SMASH FRIES', desc: 'Twice-fried, seasoned, STACKD seasoning', price: '18 lei' },
-  { name: 'CHEESE FRIES', desc: 'Smash fries, molten cheddar sauce, pickled jalapeños', price: '24 lei' },
-  { name: 'ONION RINGS', desc: 'Beer-battered, crispy, ranch dip', price: '20 lei' },
+  { id: 'smash-fries',  name: 'SMASH FRIES',  desc: 'Twice-fried, seasoned, STACKD seasoning',               price: '18 lei', priceNum: 18 },
+  { id: 'cheese-fries', name: 'CHEESE FRIES', desc: 'Smash fries, molten cheddar sauce, pickled jalapeños',   price: '24 lei', priceNum: 24 },
+  { id: 'onion-rings',  name: 'ONION RINGS',  desc: 'Beer-battered, crispy, ranch dip',                       price: '20 lei', priceNum: 20 },
 ];
 const drinks = [
-  { name: 'SHAKE — VANILLA', desc: 'Whole milk, vanilla bean, whipped cream', price: '28 lei' },
-  { name: 'SHAKE — PEANUT BUTTER', desc: 'Dark chocolate, peanut butter, salted caramel', price: '30 lei' },
-  { name: 'CRAFT LEMONADE', desc: 'House-made, ginger, mint, sparkling', price: '16 lei' },
+  { id: 'shake-vanilla', name: 'SHAKE — VANILLA',       desc: 'Whole milk, vanilla bean, whipped cream',           price: '28 lei', priceNum: 28 },
+  { id: 'shake-pb',      name: 'SHAKE — PEANUT BUTTER', desc: 'Dark chocolate, peanut butter, salted caramel',     price: '30 lei', priceNum: 30 },
+  { id: 'craft-lemonade',name: 'CRAFT LEMONADE',         desc: 'House-made, ginger, mint, sparkling',               price: '16 lei', priceNum: 16 },
 ];
 ---
 <section class="menu section" id="menu">
