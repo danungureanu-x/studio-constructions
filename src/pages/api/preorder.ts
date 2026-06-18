@@ -14,7 +14,7 @@ interface OrderItem {
 interface OrderPayload {
   orderNumber: string;
   timestamp: string;
-  customer: { name: string; phone: string };
+  customer: { name: string };
   items: OrderItem[];
   summary: { itemCount: number; totalPrice: number; currency: string };
 }
@@ -51,8 +51,7 @@ export const POST: APIRoute = async ({ request }) => {
       </div>
       <div style="padding:20px 24px;">
         <p style="margin:0 0 4px;font-size:12px;color:#888;">CUSTOMER</p>
-        <p style="margin:0 0 2px;">${customer.name}</p>
-        <p style="margin:0 0 16px;color:#888;">${customer.phone}</p>
+        <p style="margin:0 0 16px;">${customer.name}</p>
         <table style="width:100%;border-collapse:collapse;font-size:13px;">
           <thead>
             <tr style="color:#888;font-size:11px;letter-spacing:.1em;text-transform:uppercase;">

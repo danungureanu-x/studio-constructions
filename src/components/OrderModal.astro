@@ -90,10 +90,6 @@ const categories = [
           <label for="pod-name">Name</label>
           <input type="text" id="pod-name" name="name" placeholder="Your name" required autocomplete="name" />
         </div>
-        <div class="pod__form-group">
-          <label for="pod-phone">Phone</label>
-          <input type="tel" id="pod-phone" name="phone" placeholder="+40 7xx xxx xxx" required autocomplete="tel" />
-        </div>
       </div>
       <p class="pod__form-note">Pay cash when you arrive — we'll have it ready.</p>
       <button type="submit" class="btn btn--primary pod__submit" id="pod-submit">
@@ -125,7 +121,6 @@ const categories = [
   const totalPriceEl = document.getElementById('pod-total-price') as HTMLSpanElement;
   const form        = document.getElementById('pod-form') as HTMLFormElement;
   const nameInput   = document.getElementById('pod-name') as HTMLInputElement;
-  const phoneInput  = document.getElementById('pod-phone') as HTMLInputElement;
   const submitBtn   = document.getElementById('pod-submit') as HTMLButtonElement;
   const confirmEl   = document.getElementById('pod-confirm') as HTMLDivElement;
   const orderNumEl  = document.getElementById('pod-order-num') as HTMLParagraphElement;
@@ -200,7 +195,6 @@ const categories = [
     dialog.close();
     qtys.clear();
     nameInput.value = '';
-    phoneInput.value = '';
     submitBtn.textContent = 'Confirm & Send Order';
     submitBtn.disabled = false;
     podBody.hidden = false;
@@ -241,9 +235,7 @@ const categories = [
   form.addEventListener('submit', async e => {
     e.preventDefault();
     const name  = nameInput.value.trim();
-    const phone = phoneInput.value.trim();
     if (!name)  { nameInput.focus();  return; }
-    if (!phone) { phoneInput.focus(); return; }
 
     const items = buildOrderItems();
     if (items.length === 0) return;
@@ -254,7 +246,7 @@ const categories = [
     const payload = {
       orderNumber,
       timestamp: new Date().toISOString(),
-      customer: { name, phone },
+      customer: { name },
       items,
       summary: { itemCount, totalPrice, currency: 'lei' },
     };
